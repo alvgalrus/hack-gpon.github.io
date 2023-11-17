@@ -62,51 +62,36 @@ The stick has a TTL 3.3v UART console (configured as 115200 8-N-1) that can be a
 
 ## List of software versions
 
+- V8R017C00S201
 - V8R017C00S202B
 
 ## List of partitions
 
-Partition layouts change depending on which image is booted, in particular:
+Partition layouts change depending on which image is booted. For more info [XPONos partition layout](https://github.com/XPONos/linux_lantiq-falcon/commit/456f68f69a84c846a542a9f0ea47c37476535dcb).
 
-When booting image0:
-```
-mtd2 ---> image0 (linux)
-mtd5 --> image1
-mtd3 --> rootfs
-mtd4 --> rootfs_data
-```
-When booting image0:
-```
-mtd2 ---> image0
-mtd3 --> image1 (linux)
-mtd4 --> rootfs
-mtd5 --> rootfs_data
-```
-
-For more info [XPONos partition layout](https://github.com/XPONos/linux_lantiq-falcon/commit/456f68f69a84c846a542a9f0ea47c37476535dcb).
-
+In particular:
 
 ### When booting from image0
 
-| dev  | size     | erasesize | name          |
-| ---- | -------- | --------- | ------------- |
-| mtd0 | 00040000 | 00010000  | "uboot"       |
-| mtd1 | 00080000 | 00010000  | "uboot_env"   |
-| mtd2 | 00740000 | 00010000  | "linux"       |
-| mtd3 | 0061eedc | 00010000  | "rootfs"      |
-| mtd4 | 00370000 | 00010000  | "rootfs_data" |
-| mtd5 | 00800000 | 00010000  | "image1"      |
+| dev  | size     | erasesize | name          | notes  |
+| ---- | -------- | --------- | --------------| ------ |
+| mtd0 | 00040000 | 00010000  | "uboot"       |        |
+| mtd1 | 00080000 | 00010000  | "uboot_env"   |        |
+| mtd2 | 00740000 | 00010000  | "linux"       | image0 |
+| mtd3 | 0061eedc | 00010000  | "rootfs"      |        |
+| mtd4 | 00370000 | 00010000  | "rootfs_data" |        |
+| mtd5 | 00800000 | 00010000  | "image1"      | image1 |
 
 ### When booting from image1
 
-| dev  | size     | erasesize | name          |
-| ---- | -------- | --------- | ------------- |
-| mtd0 | 00040000 | 00010000  | "uboot"       |
-| mtd1 | 00080000 | 00010000  | "uboot_env"   |
-| mtd2 | 00740000 | 00010000  | "image0"      |
-| mtd3 | 00800000 | 00010000  | "linux"       |
-| mtd4 | 006d8077 | 00010000  | "rootfs"      |
-| mtd5 | 00410000 | 00010000  | "rootfs_data" |
+| dev  | size     | erasesize | name          | notes  |
+| ---- | -------- | --------- | --------------| ------ |
+| mtd0 | 00040000 | 00010000  | "uboot"       |        |
+| mtd1 | 00080000 | 00010000  | "uboot_env"   |        |
+| mtd2 | 00740000 | 00010000  | "image0"      | image0 |
+| mtd3 | 00800000 | 00010000  | "linux"       | image1 |
+| mtd4 | 006d8077 | 00010000  | "rootfs"      |        |
+| mtd5 | 00410000 | 00010000  | "rootfs_data" |        |
 
 ## List of firmwares and files
 
@@ -130,14 +115,6 @@ For more info [XPONos partition layout](https://github.com/XPONos/linux_lantiq-f
 - [Nokia G-010S-P Firmware General Setting](/ont-nokia-g-010s-p)
 
 # Advanced settings
-
-## Transferring files to the stick
-
-{% include alert.html content="If you use a modern OpenSSH version (e.g. >= 8.8) you will have to use the legacy protocol and enable some deprecated algorithms: scp `-oKexAlgorithms=+diffie-hellman-group1-sha1 -oHostKeyAlgorithms=+ssh-dss [...]`" alert="Info" icon="svg-info" color="blue" %}
-
-```sh
-# scp rootfs.bin root@192.168.1.10:/tmp/
-```
 
 ## Backup of all partition
 
@@ -184,7 +161,7 @@ cat /dev/mtdX | nc 192.168.1.11 1234
 # fw_setenv image0|1_is_valid 1
 ```
 
-## Cloning of mtd1 (image 0) into mtd5 (image 1)
+## Cloning of mtd2 (image 0) into mtd5 (image 1)
 
 {% include alert.html content="Image 0 can be flashed to image 1, while image 1 cannot be flashed to image 0 because it has larger rootfs_data" alert="Warning" icon="svg-warning" color="yellow" %}
 
@@ -195,6 +172,14 @@ The following commands are used to clone image0 to image1 and then boot to it
 # fw_setenv committed_image 1
 # fw_setenv image1_is_valid 1
 # reboot
+```
+
+## Transferring files to the stick
+
+{% include alert.html content="If you use a modern OpenSSH version (e.g. >= 8.8) you will have to use the legacy protocol and enable some deprecated algorithms: scp `-oKexAlgorithms=+diffie-hellman-group1-sha1 -oHostKeyAlgorithms=+ssh-dss [...]`" alert="Info" icon="svg-info" color="blue" %}
+
+```sh
+# scp rootfs.bin root@192.168.1.10:/tmp/
 ```
 
 ## Flashing a new rootfs via SSH
